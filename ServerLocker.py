@@ -4,7 +4,8 @@ from __future__ import print_function
 import os, sys, re, time, atexit, signal, uuid, traceback
 import socket, threading, psutil
 from multiprocessing.connection import Listener, Client
-
+import logging
+import logging.handlers
 
 IS2 = True
 if sys.version_info.major == 3:
@@ -243,6 +244,16 @@ class ServerLocker(object):
                        blocking=False, debugMode=False):
         # set debugMode
         self.debugMode = debugMode
+
+        if debugMode:
+            self.log = logging.getLogger(__name__)
+            if sys.platform == "win32":
+                handler = logging.handlers.StreamHandler
+            else:
+                handler = logging.handlers.SysLogHandler(address = '/dev/log')
+            self.log.setLevel(logging.DEBUG)
+            self.log.addHandler(handler)
+
         # autoconnect
         assert isinstance(autoconnect, bool), "locker autoconnect must be boolean"
         # create unique name
@@ -335,6 +346,7 @@ class ServerLocker(object):
             print('%s - CRITICAL - %s'%(self.__class__.__name__,message))
             if stack is not None:
                 print(stack)
+            self.log.critical(message)
         return message
 
     def _error(self, message, force=False, stack=None):
@@ -342,6 +354,7 @@ class ServerLocker(object):
             print('%s - ERROR - %s'%(self.__class__.__name__,message))
             if stack is not None:
                 print(stack)
+            self.log.error(message)
         return message
 
     def _warn(self, message, force=False, stack=None):
@@ -349,6 +362,7 @@ class ServerLocker(object):
             print('%s - WARNING - %s'%(self.__class__.__name__,message))
             if stack is not None:
                 print(stack)
+            self.log.warning(message)
         return message
 
     def _info(self, message, force=False, stack=None):
@@ -356,6 +370,7 @@ class ServerLocker(object):
             print('%s - INFO - %s'%(self.__class__.__name__,message))
             if stack is not None:
                 print(stack)
+            self.log.info(message)
         return message
 
 
