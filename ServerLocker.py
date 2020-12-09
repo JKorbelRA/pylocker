@@ -745,6 +745,11 @@ class ServerLocker(object):
                 continue
             except Exception as err:
                 self._critical('locker server is down (%s)'%err)
+                # JKB PATCH: Revive itself after hard error.
+                self.stop()
+                time.sleep(10)
+                os.execv(sys.argv[0], sys.argv)
+                # JKB PATCH END: Revive itself after hard error.
                 break
 
     @_reconnect_server
