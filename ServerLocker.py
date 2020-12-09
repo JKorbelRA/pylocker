@@ -590,6 +590,9 @@ class ServerLocker(object):
                 continue
             except Exception as err:
                 self._critical("Connection error to locker client '%s:%s' (%s)"%(clientName,clientUniqueName,err))
+                # JKB PATCH
+                #connection.close()
+                # JKB PATCH END
                 break
             # check request data
             try:
