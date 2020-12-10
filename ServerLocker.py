@@ -590,9 +590,6 @@ class ServerLocker(object):
                 continue
             except Exception as err:
                 self._critical("Connection error to locker client '%s:%s' (%s)"%(clientName,clientUniqueName,err))
-                # JKB PATCH
-                #connection.close()
-                # JKB PATCH END
                 break
             # check request data
             try:
@@ -746,13 +743,11 @@ class ServerLocker(object):
             except socket.timeout as err:
                 self._error("Connection timeout '%s' this should have no effect on the locker if otherwise please report"%(err,))
                 continue
+            except EOFError as err:
+                self._warn("Connection unexpectedly closed by the remote host.")
+                continue
             except Exception as err:
                 self._critical('locker server is down (%s)'%err)
-                # JKB PATCH: Revive itself after hard error.
-                self.stop()
-                time.sleep(10)
-                os.execv(sys.argv[0], sys.argv)
-                # JKB PATCH END: Revive itself after hard error.
                 break
 
     @_reconnect_server
