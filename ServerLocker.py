@@ -704,7 +704,7 @@ class ServerLocker(object):
                 try:
                     connection = self.__server.accept()
                 except Exception as err:
-                    self._warning("Accept failed: %s." % (format_exc()))
+                    self._warn("Accept failed: %s." % (format_exc()))
                     continue
                 # get client information
                 try:
