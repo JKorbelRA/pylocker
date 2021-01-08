@@ -704,7 +704,7 @@ class ServerLocker(object):
                 try:
                     connection = self.__server.accept()
                 except Exception as err:
-                    self._warning("Accept failed: %s" % (format_exc()))
+                    self._warning("Accept failed: %s." % (format_exc()))
                     continue
                 # get client information
                 try:
@@ -745,7 +745,7 @@ class ServerLocker(object):
                     self.__clientsLUT[clientUniqueName] = {'connection':connection, 'thread':trd, 'client_accepted_utctime':clientUTCTime, 'client_name':clientName, 'client_unique_name':clientUniqueName}
                     trd.start()
             except Exception as err:
-                self._critical('locker server is down (%s), trace:' % (err, format_exc()))
+                self._critical('locker server is down (%s), trace: %s' % (err, format_exc()))
                 break
 
     @_reconnect_server
