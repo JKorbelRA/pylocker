@@ -7,6 +7,8 @@ from multiprocessing.connection import Listener, Client
 import logging
 import logging.handlers
 
+from traceback import format_exc
+
 IS2 = True
 if sys.version_info.major == 3:
     assert sys.version_info.major != 2, "Only python 2 or 3 are supported. %s is used instead"%(sys.version_info.major, )
@@ -699,8 +701,10 @@ class ServerLocker(object):
         self.__clientsLUT = {}
         while not self._stopServing and not self._killSignal:
             try:
-                connection = self.__server.accept()
-                if connection is None:
+                try:
+                    connection = self.__server.accept()
+                except Exception as err:
+                    self._warning("Accept failed: %s" % (format_exc()))
                     continue
                 # get client information
                 try:
@@ -740,28 +744,8 @@ class ServerLocker(object):
                     trd = _LockerThread(locker=self, target=self.__serve_client, args=[connection,clientName,clientUniqueName], name='serve_client_%s'%clientUTCTime)
                     self.__clientsLUT[clientUniqueName] = {'connection':connection, 'thread':trd, 'client_accepted_utctime':clientUTCTime, 'client_name':clientName, 'client_unique_name':clientUniqueName}
                     trd.start()
-            except socket.timeout as err:
-                self._error("Connection timeout '%s' this should have no effect on the locker if otherwise please report"%(err,))
-                continue
-            except EOFError as err:
-                self._warn("Connection closed unexpectedly by remote host.")
-                continue
-            except OSError as err:
-                if err.args[0] == "bad message length":
-                    self._warn("Remote host sent a packet of unexpected length.")
-                    continue
-                else:
-                    self._critical("OSError (%s)"%err)
-                    break
-            except IOError as err:
-                if err.args[0] == "bad message length":
-                    self._warn("Remote host sent a packet of unexpected length.")
-                    continue
-                else:
-                    self._critical("IOError (%s)"%err)
-                    break
             except Exception as err:
-                self._critical('locker server is down (%s)'%err)
+                self._critical('locker server is down (%s), trace:' % (err, format_exc()))
                 break
 
     @_reconnect_server
